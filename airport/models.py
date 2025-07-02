@@ -1,4 +1,5 @@
 from django.db import models
+from rest_framework.exceptions import ValidationError
 
 from airport_api import settings
 
@@ -67,11 +68,25 @@ class Flight(models.Model):
         return f"Route: {self.route}, airplane: {self.airplane}, crew: {crew_names}"
 
 
-class Ticker(models.Model):
+class Ticket(models.Model):
     row = models.IntegerField()
     seat = models.IntegerField()
     flight = models.ForeignKey("Flight", on_delete=models.CASCADE)
     order = models.ForeignKey("Order", on_delete=models.CASCADE)
+
+    def clean(self):
+        if not 1 <= self.row <= self.flight.airplane.rows:
+            raise ValidationError(f"Row must be in range of {self.flight.airplane.rows}, not {self.row}")
+        if not 1 <= self.seat <= self.flight.airplane.seats_in_row:
+            raise ValidationError(f"Seats must be in range of {self.flight.airplane.seats_in_row}, not {self.seat}")
+
+    def save(self, *args, force_insert=False, force_update=False, using=None, update_fields=None):
+        self.full_clean()
+        return super(Ticket, self).save(force_insert, force_update, using, update_fields)
+
+    class Meta:
+        unique_together = ("row", "seat", "flight")
+        ordering = ["row", "seat"]
 
     def __str__(self):
         return f"Row: {self.row}, seat: {self.seat}, flight: {self.flight}, order: {self.order}"
