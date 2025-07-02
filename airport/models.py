@@ -1,5 +1,8 @@
 from django.db import models
 
+from airport_api import settings
+
+
 # Create your models here.
 
 class Airport(models.Model):
@@ -11,8 +14,8 @@ class Airport(models.Model):
 
 
 class Route(models.Model):
-    source = models.ForeignKey("Airport", on_delete=models.CASCADE)
-    destination = models.ForeignKey("Airport", on_delete=models.CASCADE)
+    source = models.ForeignKey("Airport", on_delete=models.CASCADE, related_name="sources")
+    destination = models.ForeignKey("Airport", on_delete=models.CASCADE, related_name="destinations")
     distance = models.IntegerField()
 
     def __str__(self):
@@ -38,8 +41,40 @@ class Airplane(models.Model):
     name = models.CharField(max_length=100)
     rows = models.IntegerField()
     seats_in_row = models.IntegerField()
-    airplane_type = models.ForeignKey("AirplaneType", on_delete=models.CASCADE)
+    airplane_type = models.ForeignKey("AirplaneType", on_delete=models.CASCADE, related_name="airplanes")
 
     def __str__(self):
         return f"Name: {self.name}, Airplane Type: {self.airplane_type}, rows: {self.rows}, seats_in_row: {self.seats_in_row}"
+
+
+class Order(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="orders")
+
+    def __str__(self):
+        return f"Order created at: {self.created_at}, user: {self.user}"
+
+
+class Flight(models.Model):
+    route = models.ForeignKey("Route", on_delete=models.CASCADE, related_name="flights")
+    airplane = models.ForeignKey("Airplane", on_delete=models.CASCADE, related_name="flights")
+    crew = models.ManyToManyField("Crew", related_name="flights")
+    departure_time = models.DateTimeField()
+    arrival_time = models.DateTimeField()
+
+    def __str__(self):
+        crew_names = ", ".join(str(member) for member in self.crew.all())
+        return f"Route: {self.route}, airplane: {self.airplane}, crew: {crew_names}"
+
+
+class Ticker(models.Model):
+    row = models.IntegerField()
+    seat = models.IntegerField()
+    flight = models.ForeignKey("Flight", on_delete=models.CASCADE)
+    order = models.ForeignKey("Order", on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Row: {self.row}, seat: {self.seat}, flight: {self.flight}, order: {self.order}"
+
+
 
