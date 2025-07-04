@@ -2,7 +2,16 @@ from django.db import transaction
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 
-from airport.models import Airport, Route, Crew, AirplaneType, Airplane, Order, Flight, Ticket
+from airport.models import (
+    Airport,
+    Route,
+    Crew,
+    AirplaneType,
+    Airplane,
+    Order,
+    Flight,
+    Ticket,
+)
 
 
 class AirportSerializer(serializers.ModelSerializer):
@@ -20,6 +29,7 @@ class RouteSerializer(serializers.ModelSerializer):
 class RouteListSerializer(serializers.ModelSerializer):
     source = serializers.SlugRelatedField(read_only=True, slug_field="name")
     destination = serializers.SlugRelatedField(read_only=True, slug_field="name")
+
     class Meta:
         model = Route
         fields = ("id", "source", "destination", "distance")
@@ -28,6 +38,7 @@ class RouteListSerializer(serializers.ModelSerializer):
 class RouteRetrieveSerializer(serializers.ModelSerializer):
     source = AirportSerializer()
     destination = AirportSerializer()
+
     class Meta:
         model = Route
         fields = ("id", "source", "destination", "distance")
@@ -63,6 +74,7 @@ class AirplaneListSerializer(AirplaneSerializer):
 
 class AirplaneRetrieveSerializer(AirplaneSerializer):
     airplane_type = AirplaneTypeSerializer()
+
     class Meta:
         model = Airplane
         fields = ("id", "name", "rows", "seats_in_row", "airplane_type", "capacity")
@@ -70,9 +82,19 @@ class AirplaneRetrieveSerializer(AirplaneSerializer):
 
 class AirplaneTypeRetrieveSerializer(serializers.ModelSerializer):
     airplanes = AirplaneSerializer(many=True)
+
     class Meta:
         model = AirplaneType
         fields = ("id", "name", "airplanes")
+
+
+class RouteNameSerializer(serializers.ModelSerializer):
+    source = serializers.CharField(source="source.name", read_only=True)
+    destination = serializers.CharField(source="destination.name", read_only=True)
+
+    class Meta:
+        model = Route
+        fields = ("source", "destination")
 
 
 class FlightSerializer(serializers.ModelSerializer):
@@ -80,14 +102,26 @@ class FlightSerializer(serializers.ModelSerializer):
         model = Flight
         fields = ("id", "route", "airplane", "departure_time", "arrival_time", "crew")
 
-    def get_route(self, obj):
-        return f"{obj.route.source.name} → {obj.route.destination.name}"
 
-
-class FlightListSerializer(FlightSerializer):
+class FlightListSerializer(serializers.ModelSerializer):
     airplane = serializers.SlugRelatedField(read_only=True, slug_field="name")
-    crew = serializers.SlugRelatedField(read_only=True, slug_field="full_name", many=True)
-    route = serializers.SerializerMethodField()
+    crew = serializers.SlugRelatedField(
+        read_only=True, slug_field="full_name", many=True
+    )
+    route = RouteNameSerializer(read_only=True)
+
+    class Meta:
+        model = Flight
+        fields = ("id", "route", "airplane", "departure_time", "arrival_time", "crew")
+
+
+class FlightOrderSerializer(serializers.ModelSerializer):
+    route = RouteNameSerializer(read_only=True)
+
+    class Meta:
+        model = Flight
+        fields = ("route",)
+
 
 
 class FlightRetrieveSerializer(FlightSerializer):
@@ -109,14 +143,16 @@ class TicketShortSerializer(serializers.ModelSerializer):
 
 
 class TicketRetrieveSerializer(serializers.ModelSerializer):
-    flight = FlightSerializer()
+    flight = FlightOrderSerializer()
+
     class Meta:
         model = Ticket
         fields = ("id", "row", "seat", "flight")
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    tickets = TicketSerializer(many=True,read_only=False, allow_empty=False)
+    tickets = TicketSerializer(many=True, read_only=False, allow_empty=False)
+
     class Meta:
         model = Order
         fields = ("id", "created_at", "tickets")
@@ -132,6 +168,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
 class OrderListSerializer(serializers.ModelSerializer):
     tickets = TicketShortSerializer(many=True, read_only=True)
+
     class Meta:
         model = Order
         fields = ("id", "created_at", "tickets")
@@ -139,6 +176,7 @@ class OrderListSerializer(serializers.ModelSerializer):
 
 class OrderRetrieveSerializer(serializers.ModelSerializer):
     tickets = TicketRetrieveSerializer(many=True)
+
     class Meta:
         model = Order
         fields = ("id", "created_at", "tickets")
