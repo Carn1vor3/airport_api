@@ -43,10 +43,20 @@ class RouteViewSet(viewsets.ModelViewSet):
     queryset = Route.objects.all()
 
     def get_queryset(self):
+        source = self.request.query_params.get("source")
+        destination = self.request.query_params.get("destination")
+
+        if source:
+            source_ids = [int(source_id) for source_id in source.split(",")]
+            self.queryset = self.queryset.filter(source__id__in=source_ids)
+        if destination:
+            destination_ids = [int(dest_id) for dest_id in destination.split(",")]
+            self.queryset = self.queryset.filter(destination__id__in=destination_ids)
+
         if self.action in ("list", "retrieve"):
             return self.queryset.select_related("source", "destination")
         else:
-            return self.queryset
+            return self.queryset.distinct()
 
     def get_serializer_class(self):
         if self.action == "retrieve":
