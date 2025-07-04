@@ -148,14 +148,25 @@ class FlightViewSet(viewsets.ModelViewSet):
     queryset = Flight.objects.all()
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        crew = self.request.query_params.get("crew")
+        route = self.request.query_params.get("route")
+
+        if crew:
+            crew_ids = [int(crew_id) for crew_id in crew.split(",")]
+            self.queryset = self.queryset.filter(crew__id__in=crew_ids)
+
+        if route:
+            route_ids = [int(route_id) for route_id in route.split(",")]
+            self.queryset = self.queryset.filter(route__id__in=route_ids)
+
+
         if self.action in ("list", "retrieve"):
-            return queryset.select_related(
+            return self.queryset.select_related(
                 "airplane__airplane_type",
                 "route__source",
                 "route__destination"
             ).prefetch_related("crew")
-        return queryset
+        return self.queryset.distinct()
 
     def get_serializer_class(self):
         if self.action == "list":
