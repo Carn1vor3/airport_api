@@ -1,3 +1,4 @@
+from django.db.models import Count, F
 from django.shortcuts import render
 from rest_framework import viewsets
 
@@ -100,7 +101,9 @@ class AirplaneViewSet(viewsets.ModelViewSet):
         airplane_type = self.request.query_params.get("airplane_type")
         if airplane_type:
             airplane_type_ids = [int(str_id) for str_id in airplane_type.split(",")]
-            self.queryset = self.queryset.filter(airplane_type__id__in=airplane_type_ids)
+            self.queryset = self.queryset.filter(
+                airplane_type__id__in=airplane_type_ids
+            )
 
         if self.action in ("list", "retrieve"):
             return self.queryset.select_related("airplane_type")
@@ -159,13 +162,24 @@ class FlightViewSet(viewsets.ModelViewSet):
             route_ids = [int(route_id) for route_id in route.split(",")]
             self.queryset = self.queryset.filter(route__id__in=route_ids)
 
-
-        if self.action in ("list", "retrieve"):
+        if self.action == "list":
             return self.queryset.select_related(
-                "airplane__airplane_type",
-                "route__source",
-                "route__destination"
+                "airplane__airplane_type", "route__source", "route__destination"
             ).prefetch_related("crew")
+        elif self.action == "retrieve":
+            return (
+                self.queryset.select_related(
+                    "airplane__airplane_type", "route__source", "route__destination"
+                )
+                .prefetch_related("crew")
+                .annotate(
+                    tickets_available=(
+                        F("airplane__rows") * F("airplane__seats_in_row")
+                    )
+                    - Count("tickets")
+                )
+            )
+
         return self.queryset.distinct()
 
     def get_serializer_class(self):
