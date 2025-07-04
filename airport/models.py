@@ -119,7 +119,7 @@ class Ticket(models.Model):
         )
 
     class Meta:
-        unique_together = ("row", "seat")
+        unique_together = ("row", "seat", "flight")
         ordering = ["row", "seat"]
 
     def __str__(self):

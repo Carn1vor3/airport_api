@@ -87,10 +87,15 @@ class AirplaneViewSet(viewsets.ModelViewSet):
     queryset = Airplane.objects.all()
 
     def get_queryset(self):
+        airplane_type = self.request.query_params.get("airplane_type")
+        if airplane_type:
+            airplane_type_ids = [int(str_id) for str_id in airplane_type.split(",")]
+            self.queryset = self.queryset.filter(airplane_type__id__in=airplane_type_ids)
+
         if self.action in ("list", "retrieve"):
             return self.queryset.select_related("airplane_type")
         else:
-            return self.queryset
+            return self.queryset.distinct()
 
     def get_serializer_class(self):
         if self.action == "list":
