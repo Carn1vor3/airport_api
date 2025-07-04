@@ -3,7 +3,10 @@ from rest_framework import viewsets
 
 from airport.models import Airport, Route, Crew, AirplaneType, Airplane, Order, Ticket, Flight
 from airport.serializers import AirportSerializer, RouteSerializer, CrewSerializer, AirplaneTypeSerializer, \
-    AirplaneSerializer, OrderSerializer, TicketSerializer, FlightSerializer
+    AirplaneSerializer, OrderSerializer, TicketSerializer, FlightSerializer, RouteRetrieveSerializer, \
+    RouteListSerializer, CrewListSerializer, AirplaneTypeRetrieveSerializer, AirplaneListSerializer, \
+    AirplaneRetrieveSerializer, OrderListSerializer, OrderRetrieveSerializer, FlightListSerializer, \
+    FlightRetrieveSerializer
 
 
 class AirportViewSet(viewsets.ModelViewSet):
@@ -13,34 +16,98 @@ class AirportViewSet(viewsets.ModelViewSet):
 
 class RouteViewSet(viewsets.ModelViewSet):
     queryset = Route.objects.all()
-    serializer_class = RouteSerializer
+
+    def get_queryset(self):
+        if self.action in ("list", "retrieve"):
+            return self.queryset.select_related("source", "destination")
+        else:
+            return self.queryset
+
+    def get_serializer_class(self):
+        if self.action == "retrieve":
+            return RouteRetrieveSerializer
+        elif self.action == "list":
+            return RouteListSerializer
+        else:
+            return RouteSerializer
 
 
 class CrewViewSet(viewsets.ModelViewSet):
     queryset = Crew.objects.all()
-    serializer_class = CrewSerializer
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return CrewListSerializer
+        else:
+            return CrewSerializer
 
 
 class AirplaneTypeViewSet(viewsets.ModelViewSet):
     queryset = AirplaneType.objects.all()
-    serializer_class = AirplaneTypeSerializer
+
+    def get_serializer_class(self):
+        if self.action == "retrieve":
+            return AirplaneTypeRetrieveSerializer
+        else:
+            return AirplaneTypeSerializer
 
 
 class AirplaneViewSet(viewsets.ModelViewSet):
     queryset = Airplane.objects.all()
-    serializer_class = AirplaneSerializer
+
+    def get_queryset(self):
+        if self.action == "list":
+            return self.queryset.select_related("airplane_type")
+        else:
+            return self.queryset
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return AirplaneListSerializer
+        elif self.action == "retrieve":
+            return AirplaneRetrieveSerializer
+        else:
+            return AirplaneSerializer
 
 
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
-    serializer_class = OrderSerializer
 
+    def get_queryset(self):
+        if self.action == "list":
+            return self.queryset.filter(user=self.request.user).prefetch_related("tickets")
+        if self.action == "retrieve":
+            return self.queryset.prefetch_related("tickets__flight__crew")
+        return self.queryset.filter(user=self.request.user)
 
-class TicketViewSet(viewsets.ModelViewSet):
-    queryset = Ticket.objects.all()
-    serializer_class = TicketSerializer
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return OrderListSerializer
+        if self.action == "retrieve":
+            return OrderRetrieveSerializer
+        else:
+            return OrderSerializer
 
 
 class FlightViewSet(viewsets.ModelViewSet):
     queryset = Flight.objects.all()
-    serializer_class = FlightSerializer
+
+    def get_queryset(self):
+        if self.action == "list":
+            return self.queryset.select_related(
+                "airplane__airplane_type",
+                "route__source",
+                "route__destination"
+            ).prefetch_related("crew")
+        return self.queryset
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return FlightListSerializer
+        elif self.action == "retrieve":
+            return FlightRetrieveSerializer
+        else:
+            return FlightSerializer

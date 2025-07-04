@@ -15,8 +15,8 @@ class Airport(models.Model):
 
 
 class Route(models.Model):
-    source = models.ForeignKey("Airport", on_delete=models.CASCADE, related_name="sources")
-    destination = models.ForeignKey("Airport", on_delete=models.CASCADE, related_name="destinations")
+    source = models.ForeignKey("Airport", on_delete=models.CASCADE, related_name="routes_source")
+    destination = models.ForeignKey("Airport", on_delete=models.CASCADE, related_name="routes_destination")
     distance = models.IntegerField()
 
     def __str__(self):
@@ -79,8 +79,8 @@ class Flight(models.Model):
 class Ticket(models.Model):
     row = models.IntegerField()
     seat = models.IntegerField()
-    flight = models.ForeignKey("Flight", on_delete=models.CASCADE)
-    order = models.ForeignKey("Order", on_delete=models.CASCADE)
+    flight = models.ForeignKey("Flight", on_delete=models.CASCADE, related_name="tickets")
+    order = models.ForeignKey("Order", on_delete=models.CASCADE, related_name="tickets")
 
     def clean(self):
         if not 1 <= self.row <= self.flight.airplane.rows:
@@ -93,7 +93,7 @@ class Ticket(models.Model):
         return super(Ticket, self).save(force_insert, force_update, using, update_fields)
 
     class Meta:
-        unique_together = ("row", "seat", "flight")
+        unique_together = ("row", "seat")
         ordering = ["row", "seat"]
 
     def __str__(self):
