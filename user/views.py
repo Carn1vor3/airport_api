@@ -3,6 +3,7 @@ from rest_framework import viewsets, generics
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.settings import api_settings
 
+from airport_api.permissions import IsAdminOrIsAuthenticatedReadOnly
 from user.serializers import UserSerializer, AuthTokenSerializer
 
 
@@ -19,6 +20,7 @@ class LoginUserView(ObtainAuthToken):
 
 class ManageUserView(generics.RetrieveUpdateAPIView):
     serializer_class = UserSerializer
+    permission_classes = [IsAdminOrIsAuthenticatedReadOnly]
 
     def get_object(self):
         return self.request.user

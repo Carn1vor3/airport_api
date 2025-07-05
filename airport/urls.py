@@ -17,3 +17,5 @@ router.register("flights", views.FlightViewSet)
 urlpatterns = [
     path("", include(router.urls)),
 ]
+
+app_name = "airport"

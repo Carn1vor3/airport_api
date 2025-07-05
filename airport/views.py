@@ -36,15 +36,18 @@ from airport.serializers import (
     FlightRetrieveSerializer,
     TicketRetrieveSerializer, AirplaneImageSerializer,
 )
+from airport_api.permissions import IsAdminOrIsAuthenticatedReadOnly
 
 
 class AirportViewSet(viewsets.ModelViewSet):
     queryset = Airport.objects.all()
     serializer_class = AirportSerializer
+    permission_classes = [IsAdminOrIsAuthenticatedReadOnly]
 
 
 class RouteViewSet(viewsets.ModelViewSet):
     queryset = Route.objects.all()
+    permission_classes = [IsAdminOrIsAuthenticatedReadOnly]
 
     def get_queryset(self):
         source = self.request.query_params.get("source")
@@ -91,6 +94,7 @@ class RouteViewSet(viewsets.ModelViewSet):
 
 class CrewViewSet(viewsets.ModelViewSet):
     queryset = Crew.objects.all()
+    permission_classes = [IsAdminOrIsAuthenticatedReadOnly]
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -101,6 +105,7 @@ class CrewViewSet(viewsets.ModelViewSet):
 
 class AirplaneTypeViewSet(viewsets.ModelViewSet):
     queryset = AirplaneType.objects.all()
+    permission_classes = [IsAdminOrIsAuthenticatedReadOnly]
 
     def get_queryset(self):
         if self.action == "retrieve":
@@ -117,6 +122,7 @@ class AirplaneTypeViewSet(viewsets.ModelViewSet):
 
 class AirplaneViewSet(viewsets.ModelViewSet):
     queryset = Airplane.objects.all()
+    permission_classes = [IsAdminOrIsAuthenticatedReadOnly]
 
     def get_queryset(self):
         airplane_type = self.request.query_params.get("airplane_type")
@@ -170,6 +176,7 @@ class AirplaneViewSet(viewsets.ModelViewSet):
 
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
+    permission_classes = [IsAdminOrIsAuthenticatedReadOnly]
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -198,6 +205,7 @@ class OrderViewSet(viewsets.ModelViewSet):
 
 class FlightViewSet(viewsets.ModelViewSet):
     queryset = Flight.objects.all()
+    permission_classes = [IsAdminOrIsAuthenticatedReadOnly]
 
     def get_queryset(self):
         crew = self.request.query_params.get("crew")
@@ -261,6 +269,7 @@ class FlightViewSet(viewsets.ModelViewSet):
 class TicketViewSet(viewsets.ModelViewSet):
     queryset = Ticket.objects.all()
     serializer_class = TicketSerializer
+    permission_classes = [IsAdminOrIsAuthenticatedReadOnly]
 
     def get_queryset(self):
         if self.action in ("list", "retrieve"):
