@@ -1,5 +1,6 @@
 from django.db.models import Count, F
 from django.shortcuts import render
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -69,6 +70,24 @@ class RouteViewSet(viewsets.ModelViewSet):
         else:
             return RouteSerializer
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "source",
+                type={"type": "array", "items": {"type": "number"}},
+                description="Filter by source id (ex. ?source=1,2)",
+            ),
+            OpenApiParameter(
+                "destination",
+                type={"type": "array", "items": {"type": "number"}},
+                description="Filter by destination id (ex. ?destination=1,2)",
+            ),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        """Get list of routes"""
+        return super().list(request, *args, **kwargs)
+
 
 class CrewViewSet(viewsets.ModelViewSet):
     queryset = Crew.objects.all()
@@ -134,6 +153,19 @@ class AirplaneViewSet(viewsets.ModelViewSet):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "airplane_type",
+                type={"type": "array", "items": {"type": "number"}},
+                description="Filter by airplane type id (ex. ?airplane_type=1,2)",
+            ),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        """Get list of airplanes"""
+        return super().list(request, *args, **kwargs)
 
 
 class OrderViewSet(viewsets.ModelViewSet):
@@ -206,6 +238,24 @@ class FlightViewSet(viewsets.ModelViewSet):
             return FlightRetrieveSerializer
         else:
             return FlightSerializer
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "crew",
+                type={"type": "array", "items": {"type": "number"}},
+                description="Filter by crew id (ex. ?crew=1,2)",
+            ),
+            OpenApiParameter(
+                "route",
+                type={"type": "array", "items": {"type": "number"}},
+                description="Filter by route id (ex. ?route=1,2)",
+            ),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        """Get list of flights"""
+        return super().list(request, *args, **kwargs)
 
 
 class TicketViewSet(viewsets.ModelViewSet):
