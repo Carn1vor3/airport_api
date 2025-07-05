@@ -1,6 +1,8 @@
 from django.db.models import Count, F
 from django.shortcuts import render
-from rest_framework import viewsets
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from airport.models import (
     Airport,
@@ -31,7 +33,7 @@ from airport.serializers import (
     OrderRetrieveSerializer,
     FlightListSerializer,
     FlightRetrieveSerializer,
-    TicketRetrieveSerializer,
+    TicketRetrieveSerializer, AirplaneImageSerializer,
 )
 
 
@@ -115,8 +117,23 @@ class AirplaneViewSet(viewsets.ModelViewSet):
             return AirplaneListSerializer
         elif self.action == "retrieve":
             return AirplaneRetrieveSerializer
+        elif self.action == "upload_image":
+            return AirplaneImageSerializer
         else:
             return AirplaneSerializer
+
+    @action(
+        detail=True,
+        methods=["POST"],
+        url_path="upload-image",
+    )
+    def upload_image(self, request, pk=None):
+        airplane = self.get_object()
+        serializer = self.get_serializer(airplane, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class OrderViewSet(viewsets.ModelViewSet):

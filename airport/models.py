@@ -1,4 +1,9 @@
+import os
+import pathlib
+import uuid
+
 from django.db import models
+from django.utils.text import slugify
 from rest_framework.exceptions import ValidationError
 
 from airport_api import settings
@@ -46,6 +51,10 @@ class AirplaneType(models.Model):
     def __str__(self):
         return f"Airplane Type: {self.name}"
 
+def movie_image_file_path(instance, filename):
+    filename = f"{slugify(instance.name)}-{uuid.uuid4()}" + pathlib.Path(filename).suffix
+    return pathlib.Path("upload/airplanes/") / pathlib.Path(filename)
+
 
 class Airplane(models.Model):
     name = models.CharField(max_length=100)
@@ -54,6 +63,7 @@ class Airplane(models.Model):
     airplane_type = models.ForeignKey(
         "AirplaneType", on_delete=models.CASCADE, related_name="airplanes"
     )
+    image = models.ImageField(upload_to=movie_image_file_path, null=True)
 
     @property
     def capacity(self):
