@@ -1,7 +1,3 @@
-import tempfile
-import os
-
-from PIL import Image
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -9,7 +5,7 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
 
-from airport.models import AirplaneType, Airplane, Crew
+from airport.models import AirplaneType, Airplane
 from airport.serializers import AirplaneListSerializer, AirplaneRetrieveSerializer
 
 AIRPLANE_URL = reverse("airport:airplane-list")
@@ -27,9 +23,11 @@ def sample_airplane(**params):
     defaults.update(params)
     return Airplane.objects.create(**defaults)
 
+
 def image_upload_url(airplane_id):
     """Return URL for recipe image upload"""
     return reverse("airport:airplane-upload-image", args=[airplane_id])
+
 
 def detail_url(movie_id):
     return reverse("airport:airplane-detail", args=[movie_id])
@@ -65,16 +63,12 @@ class AuthenticatedAirplaneTest(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data["results"], serializer.data)
 
-
     def test_filter_movies_by_airplane_type(self):
         airplane_type1 = AirplaneType.objects.create(name="name1")
         airplane_type2 = AirplaneType.objects.create(name="name2")
 
         airplane1 = sample_airplane(name="air1", airplane_type=airplane_type1)
         airplane2 = sample_airplane(name="air2", airplane_type=airplane_type2)
-
-
-
 
         res = self.client.get(
             AIRPLANE_URL, {"airplane_types": f"{airplane_type1.id},{airplane_type2.id}"}
@@ -95,7 +89,6 @@ class AuthenticatedAirplaneTest(TestCase):
         serializer = AirplaneRetrieveSerializer(airplane)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
-
 
     def test_create_airplane_forbidden(self):
         payload = {

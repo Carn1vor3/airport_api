@@ -1,4 +1,3 @@
-import os
 import pathlib
 import uuid
 
@@ -51,8 +50,11 @@ class AirplaneType(models.Model):
     def __str__(self):
         return f"Airplane Type: {self.name}"
 
+
 def movie_image_file_path(instance, filename):
-    filename = f"{slugify(instance.name)}-{uuid.uuid4()}" + pathlib.Path(filename).suffix
+    filename = (
+        f"{slugify(instance.name)}-{uuid.uuid4()}" + pathlib.Path(filename).suffix
+    )
     return pathlib.Path("upload/airplanes/") / pathlib.Path(filename)
 
 
@@ -70,7 +72,10 @@ class Airplane(models.Model):
         return self.rows * self.seats_in_row
 
     def __str__(self):
-        return f"Name: {self.name}, Airplane Type: {self.airplane_type}, rows: {self.rows}, seats_in_row: {self.seats_in_row}"
+        return (f"Name: {self.name},"
+                f" Airplane Type: {self.airplane_type},"
+                f" rows: {self.rows},"
+                f" seats_in_row: {self.seats_in_row}")
 
 
 class Order(models.Model):

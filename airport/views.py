@@ -1,5 +1,4 @@
 from django.db.models import Count, F
-from django.shortcuts import render
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
@@ -34,7 +33,8 @@ from airport.serializers import (
     OrderRetrieveSerializer,
     FlightListSerializer,
     FlightRetrieveSerializer,
-    TicketRetrieveSerializer, AirplaneImageSerializer,
+    TicketRetrieveSerializer,
+    AirplaneImageSerializer,
 )
 from airport_api.permissions import IsAdminOrIsAuthenticatedReadOnly
 
