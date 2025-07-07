@@ -7,7 +7,6 @@ from airport_api.permissions import IsAdminOrIsAuthenticatedReadOnly
 from user.serializers import UserSerializer, AuthTokenSerializer
 
 
-# Create your views here.
 class CreateUserView(generics.CreateAPIView):
     serializer_class = UserSerializer
     permission_classes = ()

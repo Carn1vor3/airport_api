@@ -8,9 +8,6 @@ from rest_framework.exceptions import ValidationError
 from airport_api import settings
 
 
-# Create your models here.
-
-
 class Airport(models.Model):
     name = models.CharField(max_length=100)
     closest_big_city = models.CharField(max_length=100)

@@ -126,7 +126,7 @@ USE_TZ = True
 AUTH_USER_MODEL = "user.User"
 
 INTERNAL_IPS = [
-    "127.0.0.1",  # для localhost
+    "127.0.0.1",
 ]
 
 

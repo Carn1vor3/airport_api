@@ -21,7 +21,6 @@ class OrderAdmin(admin.ModelAdmin):
     inlines = [TicketInline]
 
 
-# Register your models here.
 admin.site.register(Airport)
 admin.site.register(Route)
 admin.site.register(Crew)
